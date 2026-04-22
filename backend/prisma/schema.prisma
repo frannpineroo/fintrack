@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GroupType {
+  FAMILY
+  FRIENDS
+  WORK
+  COUPLE
+}
+
+enum ExpenseCategory {
+  FOOD
+  TRANSPORT
+  ENTERTAINMENT
+  SERVICES
+  HEALTH
+  EDUCATION
+  OTHER
+}
+
+enum WalletType {
+  CASH
+  CHECKING_ACCOUNT
+  SAVINGS_ACCOUNT
+  CREDIT_CARD
+}
+
+enum Currency {
+  ARS
+  USD
+  EUR
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String
+  password   String
+  created_at DateTime @default(now())
+  person     Person?
+}
+
+model Person {
+  id            Int            @id @default(autoincrement())
+  user_id       Int            @unique
+  user          User           @relation(fields: [user_id], references: [id])
+  complete_name String
+  gender        String?
+  birth_date    DateTime?
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  wallets       Wallet[]
+  groupMembers  GroupMember[]
+  paidExpenses  Expense[]      @relation("Payer")
+  expenseSplits ExpenseSplit[]
+  createdGroups Group[]        @relation("Creator")
+}
+
+model Group {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  type        GroupType
+  creator_id  Int
+  creator     Person        @relation("Creator", fields: [creator_id], references: [id])
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  members     GroupMember[]
+  expenses    Expense[]
+}
+
+model GroupMember {
+  id        Int      @id @default(autoincrement())
+  group_id  Int
+  person_id Int
+  group     Group    @relation(fields: [group_id], references: [id])
+  person    Person   @relation(fields: [person_id], references: [id])
+  joined_at DateTime @default(now())
+
+  @@unique([group_id, person_id])
+}
+
+model Wallet {
+  id         Int        @id @default(autoincrement())
+  person_id  Int
+  person     Person     @relation(fields: [person_id], references: [id])
+  name       String
+  bank       String?
+  type       WalletType
+  currency   Currency   @default(ARS)
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+}
+
+model Expense {
+  id          Int             @id @default(autoincrement())
+  group_id    Int
+  group       Group           @relation(fields: [group_id], references: [id])
+  payer_id    Int
+  payer       Person          @relation("Payer", fields: [payer_id], references: [id])
+  amount      Decimal         @db.Decimal(10, 2)
+  currency    Currency        @default(ARS)
+  category    ExpenseCategory @default(OTHER)
+  description String?
+  date        DateTime        @default(now())
+  created_at  DateTime        @default(now())
+  splits      ExpenseSplit[]
+}
+
+model ExpenseSplit {
+  id         Int      @id @default(autoincrement())
+  expense_id Int
+  expense    Expense  @relation(fields: [expense_id], references: [id])
+  person_id  Int
+  person     Person   @relation(fields: [person_id], references: [id])
+  amount     Decimal  @db.Decimal(10, 2)
+  paid       Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([expense_id, person_id])
+}
