@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes';
 
 dotenv.config();
 
@@ -17,6 +18,8 @@ const io = new Server(httpServer, {
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Fintrack API corriendo ' })
