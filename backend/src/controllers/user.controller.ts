@@ -6,7 +6,13 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.userId },
-            include: { person: true }
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                created_at: true,
+                person: true
+            }
         })
         res.status(200).json(user)
     } catch {
