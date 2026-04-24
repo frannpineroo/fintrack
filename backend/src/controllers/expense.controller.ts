@@ -1,6 +1,7 @@
-import { Response } from 'express'
-import prisma from '../lib/prisma'
-import { AuthRequest } from '../middlewares/auth.middleware'
+import { Response } from 'express';
+import prisma from '../lib/prisma';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { io } from '../index';
 
 export const createExpense = async (req: AuthRequest, res: Response) => {
     const { group_id, amount, currency, category, description, date, splits } = req.body
@@ -30,6 +31,8 @@ export const createExpense = async (req: AuthRequest, res: Response) => {
             },
             include: { splits: true }
         })
+
+        io.to(`group_${group_id}`).emit('new_expense', expense)
 
         res.status(201).json(expense)
     } catch {
