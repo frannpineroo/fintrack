@@ -37,9 +37,20 @@ app.get('/', (req, res) => {
 })
 
 io.on('connection', (socket) => {
-    console.log("Nuevo cliente conectado:" + socket.id);
+    console.log('Cliente conectado:', socket.id)
+
+    socket.on('join_group', (groupId: number) => {
+        socket.join(`group_${groupId}`)
+        console.log(`Socket ${socket.id} se unió al grupo ${groupId}`)
+    })
+
+    socket.on('leave_group', (groupId: number) => {
+        socket.leave(`group_${groupId}`)
+        console.log(`Socket ${socket.id} dejó el grupo ${groupId}`)
+    })
+
     socket.on('disconnect', () => {
-        console.log("Cliente desconectado:" + socket.id);
+        console.log('Cliente desconectado:', socket.id)
     })
 })
 
