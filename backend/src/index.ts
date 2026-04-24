@@ -4,7 +4,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
-import userRoutes from './routes/user.routes'
+import userRoutes from './routes/user.routes';
+import groupRoutes from './routes/group.routes';
 
 dotenv.config();
 
@@ -26,7 +27,8 @@ app.use((req, res, next) => {
 })
 
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes)
+app.use('/api/users', userRoutes);
+app.use('/api/groups', groupRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Fintrack API corriendo ' })
