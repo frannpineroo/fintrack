@@ -23,6 +23,11 @@ interface Expense {
     splits: Split[]
 }
 
+interface Member {
+    id: number
+    person: { id: number; complete_name: string }
+}
+
 export default function GroupPage() {
     const { id } = useParams()
     const [expenses, setExpenses] = useState<Expense[]>([])
@@ -36,6 +41,8 @@ export default function GroupPage() {
         date: '',
         splits: [{ person_id: '', amount: '' }]
     })
+    const [members, setMembers] = useState<Member[]>([])
+    const [equalSplit, setEqualSplit] = useState(true)
 
     const fetchExpenses = async () => {
         try {
@@ -48,7 +55,19 @@ export default function GroupPage() {
         }
     }
 
+    const fetchMembers = async () => {
+        try {
+            const res = await api.get(`/groups`)
+            const allGroups = res.data
+            const currentGroup = allGroups.find((g: { id: number }) => g.id === Number(id))
+            if (currentGroup) setMembers(currentGroup.members)
+        } catch {
+            console.error('Error al cargar miembros')
+        }
+    }
+
     useEffect(() => {
+        fetchMembers()
         fetchExpenses()
     }, [id])
 
@@ -65,6 +84,16 @@ export default function GroupPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         try {
+            const splits = equalSplit
+                ? members.map(m => ({
+                    person_id: m.person.id,
+                    amount: Number((Number(form.amount) / members.length).toFixed(2))
+                }))
+                : form.splits.map(s => ({
+                    person_id: Number(s.person_id),
+                    amount: Number(s.amount)
+                }))
+
             await api.post('/expenses', {
                 group_id: id,
                 amount: Number(form.amount),
@@ -72,20 +101,12 @@ export default function GroupPage() {
                 category: form.category,
                 description: form.description,
                 date: form.date,
-                splits: form.splits.map(s => ({
-                    person_id: Number(s.person_id),
-                    amount: Number(s.amount)
-                }))
+                splits
             })
+
             setShowForm(false)
-            setForm({
-                description: '',
-                amount: '',
-                currency: 'ARS',
-                category: 'FOOD',
-                date: '',
-                splits: [{ person_id: '', amount: '' }]
-            })
+            setForm({ description: '', amount: '', currency: 'ARS', category: 'FOOD', date: '', splits: [] })
+            setEqualSplit(true)
             fetchExpenses()
         } catch {
             console.error('Error al crear gasto')
@@ -155,32 +176,42 @@ export default function GroupPage() {
                             className="border p-2 rounded"
                         />
                         <div>
-                            <p className="font-medium mb-2">Splits</p>
-                            {form.splits.map((split, i) => (
-                                <div key={i} className="flex gap-2 mb-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Person ID"
-                                        value={split.person_id}
-                                        onChange={e => handleSplitChange(i, 'person_id', e.target.value)}
-                                        className="border p-2 rounded w-1/2"
-                                    />
+                            <div className="flex items-center gap-2 mb-3">
+                                <label className="font-medium">División</label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const newEqualSplit = !equalSplit
+                                        setEqualSplit(newEqualSplit)
+                                        if (!newEqualSplit) {
+                                            setForm({
+                                                ...form,
+                                                splits: members.map(m => ({
+                                                    person_id: String(m.person.id),
+                                                    amount: form.amount ? (Number(form.amount) / members.length).toFixed(2) : ''
+                                                }))
+                                            })
+                                        }
+                                    }}
+                                    className={`px-3 py-1 rounded text-sm ${equalSplit ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                >
+                                    {equalSplit ? 'Partes iguales' : 'Manual'}
+                                </button>
+                            </div>
+
+                            {members.map((member, i) => (
+                                <div key={member.id} className="flex justify-between items-center mb-2">
+                                    <span className="text-sm">{member.person.complete_name}</span>
                                     <input
                                         type="number"
                                         placeholder="Monto"
-                                        value={split.amount}
+                                        disabled={equalSplit}
+                                        value={form.splits[i]?.amount || (equalSplit && form.amount ? (Number(form.amount) / members.length).toFixed(2) : '')}
                                         onChange={e => handleSplitChange(i, 'amount', e.target.value)}
-                                        className="border p-2 rounded w-1/2"
+                                        className="border p-2 rounded w-32 text-sm disabled:bg-gray-100"
                                     />
                                 </div>
                             ))}
-                            <button
-                                type="button"
-                                onClick={handleAddSplit}
-                                className="text-blue-500 text-sm hover:underline"
-                            >
-                                + Agregar persona
-                            </button>
                         </div>
                         <button type="submit" className="bg-green-500 text-white p-2 rounded hover:bg-green-600">
                             Guardar gasto
