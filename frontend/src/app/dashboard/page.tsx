@@ -38,13 +38,14 @@ export default function DashboardPage() {
                 <h1 className="text-xl font-bold">FinTrack</h1>
                 <div className="flex items-center gap-4">
                     <span className="text-gray-600">Hola, {user?.name}</span>
+                    <a href="/wallets" className="text-blue-500 hover:underline">Mis wallets</a>
+                    <a href="/profile" className="text-blue-500 hover:underline">Mi perfil</a>
                     <button
                         onClick={logout}
                         className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                     >
                         Cerrar sesión
                     </button>
-                    <a href="/wallets" className="text-blue-500 hover:underline">Mis wallets</a>
                 </div>
             </nav>
 
