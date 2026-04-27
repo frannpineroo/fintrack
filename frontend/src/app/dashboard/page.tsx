@@ -44,6 +44,7 @@ export default function DashboardPage() {
                     >
                         Cerrar sesión
                     </button>
+                    <a href="/wallets" className="text-blue-500 hover:underline">Mis wallets</a>
                 </div>
             </nav>
 
