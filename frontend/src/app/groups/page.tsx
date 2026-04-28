@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../context/AuthContext'
+import AppLayout from '../../components/AppLayout'
 import api from '../../lib/api'
-import { group } from 'console'
 import Link from 'next/link'
-import AppLayout from '@/components/AppLayout'
 
 interface Group {
     id: number
@@ -15,8 +13,7 @@ interface Group {
     members: { id: number; person: { complete_name: string } }[]
 }
 
-export default function DashboardPage() {
-    const { user, logout } = useAuth()
+export default function GroupsPage() {
     const [groups, setGroups] = useState<Group[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -36,12 +33,13 @@ export default function DashboardPage() {
 
     return (
         <AppLayout>
-            <h2 className="text-xl font-semibold mb-4">Mis grupos</h2>
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Mis grupos</h2>
                 <Link href="/groups/new" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Nuevo grupo
                 </Link>
             </div>
+
             {loading ? (
                 <p>Cargando...</p>
             ) : groups.length === 0 ? (

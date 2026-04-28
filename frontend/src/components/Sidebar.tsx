@@ -5,8 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { usePathname } from 'next/navigation'
 
 const links = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/groups/new', label: 'Nuevo grupo' },
+    { href: '/groups', label: 'Grupos' },
     { href: '/wallets', label: 'Mis wallets' },
     { href: '/profile', label: 'Mi perfil' },
 ]
