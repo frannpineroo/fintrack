@@ -75,6 +75,10 @@ export default function ProfilePage() {
                             <p className="text-sm text-gray-500">Email</p>
                             <p className="font-medium">{user?.email}</p>
                         </div>
+                        <div className="mb-4">
+                            <p className="text-sm text-gray-500">Nombre Usuario</p>
+                            <p className="font-medium">{user?.username}</p>
+                        </div>
 
                         {editing ? (
                             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
