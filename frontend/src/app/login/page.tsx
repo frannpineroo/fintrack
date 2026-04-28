@@ -41,6 +41,10 @@ export default function LoginPage() {
                     <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
                         Iniciar sesión
                     </button>
+                    <p className="text-center text-sm text-gray-500">
+                        ¿No tenés cuenta?{' '}
+                        <a href="/register" className="text-blue-500 hover:underline">Registrate</a>
+                    </p>
                 </form>
             </div>
         </div>

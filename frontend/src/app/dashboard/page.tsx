@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import { group } from 'console'
+import Link from 'next/link'
 
 interface Group {
     id: number
@@ -51,6 +52,13 @@ export default function DashboardPage() {
 
             <main className="max-w-4xl mx-auto p-6">
                 <h2 className="text-xl font-semibold mb-4">Mis grupos</h2>
+
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">Mis grupos</h2>
+                    <Link href="/groups/new" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Nuevo grupo
+                    </Link>
+                </div>
 
                 {loading ? (
                     <p>Cargando...</p>
