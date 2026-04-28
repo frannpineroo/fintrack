@@ -6,12 +6,18 @@ import prisma from '../lib/prisma';
 const JWT_SECRET = process.env.JWT_SECRET || 'secret'
 
 export const register = async (req: Request, res: Response) => {
-    const { email, name, password } = req.body
+    const { email, name, username, password } = req.body
 
     try {
         const existingUser = await prisma.user.findUnique({ where: { email } })
         if (existingUser) {
             res.status(400).json({ message: 'Email already in use' })
+            return
+        }
+
+        const existingUsername = await prisma.user.findUnique({ where: { username } })
+        if (existingUsername) {
+            res.status(400).json({ message: 'Username already in use' })
             return
         }
 
@@ -21,20 +27,18 @@ export const register = async (req: Request, res: Response) => {
             data: {
                 email,
                 name,
+                username,
                 password: hashedPassword,
                 person: {
-                    create: {
-                        complete_name: name
-                    }
+                    create: { complete_name: name }
                 }
             },
             include: { person: true }
         })
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
-
-        res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name } })
-    } catch (error) {
+        res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, username: user.username } })
+    } catch {
         res.status(500).json({ message: 'Internal server error' })
     }
 }
@@ -57,7 +61,7 @@ export const login = async (req: Request, res: Response) => {
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
 
-        res.status(200).json({ token, user: { id: user.id, email: user.email, name: user.name } })
+        res.status(200).json({ token, user: { id: user.id, email: user.email, name: user.name, username: user.username } })
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' })
     }
