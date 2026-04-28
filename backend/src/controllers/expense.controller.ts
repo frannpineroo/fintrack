@@ -59,6 +59,34 @@ export const getGroupExpenses = async (req: AuthRequest, res: Response) => {
     }
 }
 
+export const getMyExpenses = async (req: AuthRequest, res: Response) => {
+    try {
+        const person = await prisma.person.findUnique({ where: { user_id: req.userId } })
+        if (!person) {
+            res.status(404).json({ message: 'Person not found' })
+            return
+        }
+
+        const expenses = await prisma.expense.findMany({
+            where: {
+                splits: { some: { person_id: person.id } }
+            },
+            include: {
+                payer: true,
+                group: { select: { id: true, name: true } },
+                splits: {
+                    include: { person: true }
+                }
+            },
+            orderBy: { date: 'desc' }
+        })
+
+        res.status(200).json(expenses)
+    } catch {
+        res.status(500).json({ message: 'Internal server error' })
+    }
+}
+
 export const markSplitAsPaid = async (req: AuthRequest, res: Response) => {
     const { splitId } = req.params
 
