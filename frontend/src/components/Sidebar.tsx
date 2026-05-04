@@ -8,6 +8,7 @@ const links = [
     { href: '/dashboard', label: 'Inicio' },
     { href: '/groups', label: 'Grupos' },
     { href: '/wallets', label: 'Mis wallets' },
+    { href: '/expenses', label: 'Mis gastos' },
     { href: '/profile', label: 'Mi perfil' },
 ]
 
