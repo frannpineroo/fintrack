@@ -7,6 +7,7 @@ import api from '../../lib/api'
 
 interface Expense {
     id: number
+    payer_id: number
     description: string
     amount: number
     currency: string
@@ -14,7 +15,11 @@ interface Expense {
     date: string
     group: { id: number; name: string }
     payer: { complete_name: string }
-    splits: { id: number; paid: boolean; amount: number; person: { complete_name: string } }[]
+    splits: {
+        id: number; paid: boolean; amount: number; person: {
+            id: number | null; payer_id: string; complete_name: string
+        }
+    }[]
 }
 
 export default function ExpensesPage() {
@@ -22,6 +27,7 @@ export default function ExpensesPage() {
     const [expenses, setExpenses] = useState<Expense[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState('ALL')
+    const [myPersonId, setMyPersonId] = useState<number | null>(null)
 
     const fetchExpenses = async () => {
         try {
@@ -36,6 +42,15 @@ export default function ExpensesPage() {
 
     useEffect(() => {
         fetchExpenses()
+        const fetchMyPersonId = async () => {
+            try {
+                const meRes = await api.get('/users/me')
+                setMyPersonId(meRes.data.person.id)
+            } catch {
+                console.error('Error al cargar mi persona')
+            }
+        }
+        fetchMyPersonId()
     }, [])
 
     const handleMarkPaid = async (splitId: number) => {
@@ -59,19 +74,19 @@ export default function ExpensesPage() {
 
     const filteredExpenses = expenses.filter(expense => {
         if (filter === 'ALL') return true
-        if (filter === 'PAID_BY_ME') return expense.payer.complete_name === user?.name
-        if (filter === 'OWE') return expense.payer.complete_name !== user?.name
+        if (filter === 'PAID_BY_ME') return expense.payer_id === myPersonId
+        if (filter === 'OWE') return expense.payer_id === myPersonId || expense.splits.some(s => !s.paid && s.person.id === myPersonId)
         return true
     })
 
     const totalOwe = expenses
-        .filter(e => e.payer.complete_name !== user?.name)
-        .flatMap(e => e.splits.filter(s => !s.paid && s.person.complete_name === user?.name))
+        .filter(e => e.payer_id !== myPersonId)
+        .flatMap(e => e.splits.filter(s => !s.paid && s.person.id === myPersonId))
         .reduce((acc, s) => acc + Number(s.amount), 0)
 
     const totalOwed = expenses
-        .filter(e => e.payer.complete_name === user?.name)
-        .flatMap(e => e.splits.filter(s => !s.paid && s.person.complete_name !== user?.name))
+        .filter(e => e.payer_id === myPersonId)
+        .flatMap(e => e.splits.filter(s => !s.paid && s.person.id !== myPersonId))
         .reduce((acc, s) => acc + Number(s.amount), 0)
 
     return (
@@ -137,7 +152,7 @@ export default function ExpensesPage() {
                                             ) : (
                                                 <>
                                                     <span className="text-red-500">Debe: {expense.currency} {Number(split.amount).toFixed(2)}</span>
-                                                    {expense.payer.complete_name === user?.name && (
+                                                    {expense.payer_id === myPersonId && (
                                                         <button
                                                             onClick={() => handleMarkPaid(split.id)}
                                                             className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"

@@ -15,6 +15,7 @@ interface Group {
 
 interface Expense {
     id: number
+    payer_id: number
     description: string
     amount: number
     currency: string
@@ -31,10 +32,15 @@ export default function DashboardPage() {
     const [totalOwed, setTotalOwed] = useState(0)
     const [totalOwe, setTotalOwe] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [myPersonId, setMyPersonId] = useState<number | null>(null)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const meRes = await api.get('/users/me')
+                const personId = meRes.data.person.id
+                setMyPersonId(personId)
+
                 const groupsRes = await api.get('/groups')
                 const fetchedGroups = groupsRes.data
                 setGroups(fetchedGroups.slice(0, 3))
@@ -53,7 +59,7 @@ export default function DashboardPage() {
                 for (const expense of allExpenses) {
                     expense.splits.forEach(split => {
                         if (!split.paid) {
-                            if (expense.payer.complete_name === user?.name) {
+                            if (expense.payer_id === personId) {  // personId, no myPersonId
                                 owed += Number(split.amount)
                             } else {
                                 owe += Number(split.amount)

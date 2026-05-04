@@ -72,6 +72,7 @@ export const getMyExpenses = async (req: AuthRequest, res: Response) => {
                 splits: { some: { person_id: person.id } }
             },
             include: {
+                payer_id: true,
                 payer: true,
                 group: { select: { id: true, name: true } },
                 splits: {
