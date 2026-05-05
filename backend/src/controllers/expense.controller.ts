@@ -72,7 +72,6 @@ export const getMyExpenses = async (req: AuthRequest, res: Response) => {
                 splits: { some: { person_id: person.id } }
             },
             include: {
-                payer_id: true,
                 payer: true,
                 group: { select: { id: true, name: true } },
                 splits: {
@@ -83,7 +82,8 @@ export const getMyExpenses = async (req: AuthRequest, res: Response) => {
         })
 
         res.status(200).json(expenses)
-    } catch {
+    } catch (error) {
+        console.error('Error fetching user expenses:', error)
         res.status(500).json({ message: 'Internal server error' })
     }
 }

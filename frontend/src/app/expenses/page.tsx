@@ -15,11 +15,7 @@ interface Expense {
     date: string
     group: { id: number; name: string }
     payer: { complete_name: string }
-    splits: {
-        id: number; paid: boolean; amount: number; person: {
-            id: number | null; payer_id: string; complete_name: string
-        }
-    }[]
+    splits: { id: number; paid: boolean; amount: number; person: { id: number; complete_name: string } }[]
 }
 
 export default function ExpensesPage() {
@@ -29,34 +25,29 @@ export default function ExpensesPage() {
     const [filter, setFilter] = useState('ALL')
     const [myPersonId, setMyPersonId] = useState<number | null>(null)
 
-    const fetchExpenses = async () => {
-        try {
-            const res = await api.get('/expenses/me')
-            setExpenses(res.data)
-        } catch {
-            console.error('Error al cargar gastos')
-        } finally {
-            setLoading(false)
-        }
-    }
-
     useEffect(() => {
-        fetchExpenses()
-        const fetchMyPersonId = async () => {
+        const fetchAll = async () => {
             try {
                 const meRes = await api.get('/users/me')
-                setMyPersonId(meRes.data.person.id)
+                const personId = meRes.data.person.id
+                setMyPersonId(personId)
+
+                const res = await api.get('/expenses/me')
+                setExpenses(res.data)
             } catch {
-                console.error('Error al cargar mi persona')
+                console.error('Error al cargar gastos')
+            } finally {
+                setLoading(false)
             }
         }
-        fetchMyPersonId()
+        fetchAll()
     }, [])
 
     const handleMarkPaid = async (splitId: number) => {
         try {
             await api.put(`/expenses/splits/${splitId}/paid`)
-            fetchExpenses()
+            const res = await api.get('/expenses/me')
+            setExpenses(res.data)
         } catch {
             console.error('Error al marcar como pagado')
         }
@@ -75,25 +66,24 @@ export default function ExpensesPage() {
     const filteredExpenses = expenses.filter(expense => {
         if (filter === 'ALL') return true
         if (filter === 'PAID_BY_ME') return expense.payer_id === myPersonId
-        if (filter === 'OWE') return expense.payer_id === myPersonId || expense.splits.some(s => !s.paid && s.person.id === myPersonId)
+        if (filter === 'OWE') return expense.payer_id !== myPersonId
         return true
     })
-
-    const totalOwe = expenses
-        .filter(e => e.payer_id !== myPersonId)
-        .flatMap(e => e.splits.filter(s => !s.paid && s.person.id === myPersonId))
-        .reduce((acc, s) => acc + Number(s.amount), 0)
 
     const totalOwed = expenses
         .filter(e => e.payer_id === myPersonId)
         .flatMap(e => e.splits.filter(s => !s.paid && s.person.id !== myPersonId))
         .reduce((acc, s) => acc + Number(s.amount), 0)
 
+    const totalOwe = expenses
+        .filter(e => e.payer_id !== myPersonId)
+        .flatMap(e => e.splits.filter(s => !s.paid && s.person.id === myPersonId))
+        .reduce((acc, s) => acc + Number(s.amount), 0)
+
     return (
         <AppLayout>
             <h2 className="text-xl font-semibold mb-6">Mis gastos</h2>
 
-            {/* Balance */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <p className="text-sm text-green-600 mb-1">Te deben</p>
@@ -105,7 +95,6 @@ export default function ExpensesPage() {
                 </div>
             </div>
 
-            {/* Filtros */}
             <div className="flex gap-2 mb-4">
                 {[
                     { value: 'ALL', label: 'Todos' },
@@ -138,9 +127,7 @@ export default function ExpensesPage() {
                                     </p>
                                     <p className="text-xs text-gray-500">Pagó: {expense.payer.complete_name}</p>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-bold">{expense.currency} {Number(expense.amount).toFixed(2)}</p>
-                                </div>
+                                <p className="font-bold">{expense.currency} {Number(expense.amount).toFixed(2)}</p>
                             </div>
                             <div className="border-t pt-2 flex flex-col gap-1">
                                 {expense.splits.map(split => (

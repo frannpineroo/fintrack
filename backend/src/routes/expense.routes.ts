@@ -4,9 +4,9 @@ import { authMiddleware } from '../middlewares/auth.middleware'
 
 const router = Router()
 
-router.post('/', authMiddleware, createExpense);
-router.get('/group/:groupId', authMiddleware, getGroupExpenses);
-router.put('/splits/:splitId/paid', authMiddleware, markSplitAsPaid);
 router.get('/me', authMiddleware, getMyExpenses);
+router.get('/group/:groupId', authMiddleware, getGroupExpenses);
+router.post('/', authMiddleware, createExpense);
+router.put('/splits/:splitId/paid', authMiddleware, markSplitAsPaid);
 
 export default router
