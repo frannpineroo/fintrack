@@ -25,7 +25,8 @@ export const createExpense = async (req: AuthRequest, res: Response) => {
                 splits: {
                     create: splits.map((s: { person_id: number, amount: number }) => ({
                         person_id: s.person_id,
-                        amount: s.amount
+                        amount: s.amount,
+                        paid: s.person_id === person.id
                     }))
                 }
             },
