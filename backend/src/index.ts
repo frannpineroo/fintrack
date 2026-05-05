@@ -8,6 +8,7 @@ import userRoutes from './routes/user.routes';
 import groupRoutes from './routes/group.routes';
 import expenseRoutes from './routes/expense.routes';
 import walletRoutes from './routes/wallet.routes';
+import contactRoutes from './routes/contact.routes';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/wallets', walletRoutes);
+app.use('/api/contacts', contactRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Fintrack API corriendo ' })
