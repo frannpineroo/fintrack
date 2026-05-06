@@ -3,12 +3,12 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
 export const searchUsers = async (req: AuthRequest, res: Response) => {
-    const username = req.query;
+    const username = req.query.username as string;
 
     try {
         const users = await prisma.user.findMany({
             where: {
-                username: { contains: String(username), mode: 'insensitive' },
+                username: { contains: Array.isArray(username) ? username[0] : String(username), mode: 'insensitive' },
                 NOT: { id: req.userId }
             },
             select: {
@@ -21,7 +21,8 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
             }
         })
         res.status(200).json(users);
-    } catch {
+    } catch (error) {
+        console.error('Error en searchUsers:', error)
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -43,7 +44,8 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
             }
         })
         res.status(200).json(contacts)
-    } catch {
+    } catch (error) {
+        console.error('Error en getContacts:', error);
         res.status(500).json({ message: 'Internal server error' })
     }
 }
